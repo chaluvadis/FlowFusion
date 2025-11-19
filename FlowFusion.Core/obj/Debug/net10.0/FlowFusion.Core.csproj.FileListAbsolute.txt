@@ -1,0 +1,11 @@
+C:\Users\schaluvadi\source\myworks\FlowFusion\FlowFusion.Core\bin\Debug\net10.0\FlowFusion.Core.deps.json
+C:\Users\schaluvadi\source\myworks\FlowFusion\FlowFusion.Core\bin\Debug\net10.0\FlowFusion.Core.dll
+C:\Users\schaluvadi\source\myworks\FlowFusion\FlowFusion.Core\bin\Debug\net10.0\FlowFusion.Core.pdb
+C:\Users\schaluvadi\source\myworks\FlowFusion\FlowFusion.Core\obj\Debug\net10.0\FlowFusion.Core.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\schaluvadi\source\myworks\FlowFusion\FlowFusion.Core\obj\Debug\net10.0\FlowFusion.Core.AssemblyInfoInputs.cache
+C:\Users\schaluvadi\source\myworks\FlowFusion\FlowFusion.Core\obj\Debug\net10.0\FlowFusion.Core.AssemblyInfo.cs
+C:\Users\schaluvadi\source\myworks\FlowFusion\FlowFusion.Core\obj\Debug\net10.0\FlowFusion.Core.csproj.CoreCompileInputs.cache
+C:\Users\schaluvadi\source\myworks\FlowFusion\FlowFusion.Core\obj\Debug\net10.0\FlowFusion.Core.dll
+C:\Users\schaluvadi\source\myworks\FlowFusion\FlowFusion.Core\obj\Debug\net10.0\refint\FlowFusion.Core.dll
+C:\Users\schaluvadi\source\myworks\FlowFusion\FlowFusion.Core\obj\Debug\net10.0\FlowFusion.Core.pdb
+C:\Users\schaluvadi\source\myworks\FlowFusion\FlowFusion.Core\obj\Debug\net10.0\ref\FlowFusion.Core.dll

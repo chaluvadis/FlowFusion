@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="FlowFusion.Builder/FlowFusion.Builder.csproj" />
+  <Project Path="FlowFusion.Core/FlowFusion.Core.csproj" />
+  <Project Path="FlowFusion.Expression/FlowFusion.Expression.csproj" />
+  <Project Path="FlowFusion.RunTime/FlowFusion.RunTime.csproj" />
+</Solution>
