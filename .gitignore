@@ -52,3 +52,9 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+
+coverage-report
+test-results
+Debug/
+obj/
+bin/
