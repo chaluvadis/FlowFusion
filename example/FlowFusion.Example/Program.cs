@@ -14,7 +14,7 @@ var host = Host.CreateDefaultBuilder(args)
     })
     .Build();
 
-var evaluator = host.Services.GetRequiredService<IExpressionEvaluator>();
+var evaluator = host.Services.GetRequiredService<FlowFusion.Core.Interfaces.IExpressionEvaluator>();
 var engine = host.Services.GetRequiredService<IWorkflowEngine>();
 
 Console.WriteLine("FlowFusion Expression Evaluator Examples");
