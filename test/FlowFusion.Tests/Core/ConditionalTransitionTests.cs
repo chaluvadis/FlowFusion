@@ -48,15 +48,15 @@ public class ConditionalTransitionTests
         Assert.IsNull(transition3.Expression);
     }
     [TestMethod]
-    public void Equality_BasedOnReference()
+    public void Equality_BasedOnValue()
     {
         // Arrange
         var transition1 = new ConditionalTransition("source", "target", "expr");
         var transition2 = new ConditionalTransition("source", "target", "expr");
-        // Assert - Since this is a class, not a record, equality is reference-based
-        Assert.AreNotEqual(transition1, transition2);
-        // But hash codes should be different for different instances
-        Assert.AreNotEqual(transition1.GetHashCode(), transition2.GetHashCode());
+        // Assert - Since this is a record, equality is value-based
+        Assert.AreEqual(transition1, transition2);
+        // Hash codes should be equal for equal instances
+        Assert.AreEqual(transition1.GetHashCode(), transition2.GetHashCode());
     }
     [TestMethod]
     public void Inequality_WhenPropertiesDiffer()

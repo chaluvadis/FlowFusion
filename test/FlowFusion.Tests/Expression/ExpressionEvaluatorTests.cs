@@ -1,4 +1,5 @@
 namespace FlowFusion.Tests.Expression;
+
 [TestClass]
 public class ExpressionEvaluatorTests
 {
@@ -233,7 +234,7 @@ public class ExpressionEvaluatorTests
     public async Task EvaluateAsync_NullExpression_ReturnsFalse()
     {
         // Act
-        var result = await _evaluator.EvaluateAsync(null, _context, TestContext.CancellationToken);
+        var result = await _evaluator.EvaluateAsync(null!, _context, TestContext.CancellationToken);
         // Assert
         Assert.IsFalse(result);
     }
@@ -269,7 +270,7 @@ public class ExpressionEvaluatorTests
         var context = new FlowExecutionContext(new Dictionary<string, object?> { ["flag"] = true });
         cts.Cancel();
         // Act & Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(() => _evaluator.EvaluateAsync("flag", context, cts.Token));
+        await Assert.ThrowsAsync<OperationCanceledException>(() => _evaluator.EvaluateAsync("flag", context, cts.Token));
     }
     [TestMethod]
     public async Task EvaluateAsync_FloatNumbers_ReturnsTrue()
