@@ -18,7 +18,7 @@ public class ExecutionContextTests
     public void Constructor_WithNullVariables_SetsEmptyDictionary()
     {
         // Arrange & Act
-        var context = new FlowExecutionContext(null);
+        var context = new FlowExecutionContext(null!);
         // Assert
         Assert.IsNotNull(context.Variables);
         Assert.IsEmpty(context.Variables);

@@ -1,4 +1,5 @@
 namespace FlowFusion.Tests.RunTime;
+
 [TestClass]
 public class WorkflowEngineTests
 {
@@ -16,7 +17,7 @@ public class WorkflowEngineTests
     public async Task RunAsync_NullWorkflow_ThrowsArgumentNullException()
     {
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentNullException>(() => _engine.RunAsync(null, _context, TestContext.CancellationToken));
+        await Assert.ThrowsAsync<ArgumentNullException>(() => _engine.RunAsync(null!, _context, TestContext.CancellationToken));
     }
     [TestMethod]
     public async Task RunAsync_NullContext_ThrowsArgumentNullException()
