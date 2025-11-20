@@ -1,117 +1,83 @@
 # FlowFusion
 
-A high-performance workflow execution engine with built-in expression evaluation capabilities, designed following clean architecture principles.
+A high-performance workflow execution engine with built-in expression evaluation for .NET applications.
 
-## Overview
-
-FlowFusion enables the creation and execution of complex workflows with conditional branching based on dynamic expressions. The engine supports C# syntax expressions that can access workflow context variables, enabling powerful decision-making logic in automated processes.
-
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![.NET](https://img.shields.io/badge/.NET-10.0-purple.svg)](https://dotnet.microsoft.com)
-
-## Architecture
-
-FlowFusion follows clean architecture principles with clear separation of concerns:
-
-```
-┌─────────────────────────────────────┐
-│             Example                 │
-│   (Application Entry Point)         │
-└─────────────────┬───────────────────┘
-                  │
-┌─────────────────┴───────────────────┐
-│             Builder                 │
-│   (Workflow Construction)           │
-└─────────────────┬───────────────────┘
-                  │
-┌─────────────────┴───────────────────┐
-│             RunTime                 │
-│   (Workflow Execution Engine)       │
-│   ├── WorkflowEngine                │
-│   └── Services                      │
-└─────────────────┬───────────────────┘
-                  │
-┌─────────────────┴───────────────────┐
-│             Expression              │
-│   (Expression Evaluation)           │
-│   ├── ExpressionEvaluator           │
-│   └── ExpressionParser              │
-└─────────────────┬───────────────────┘
-                  │
-┌─────────────────┴───────────────────┐
-│              Core                   │
-│   (Domain Models & Interfaces)      │
-│   ├── IExpressionEvaluator          │
-│   ├── FlowExecutionContext          │
-│   ├── ExecutionResult               │
-│   ├── ConditionalTransition         │
-│   ├── IWorkflow                     │
-│   └── IBlock                        │
-└─────────────────────────────────────┘
-```
-
-### Layer Responsibilities
-
-- **Core**: Contains domain models, interfaces, and business rules. Defines contracts that other layers implement.
-- **Expression**: Implements expression evaluation using compiled C# expressions for high performance.
-- **RunTime**: Provides the workflow execution engine that orchestrates block execution and conditional transitions.
-- **Builder**: Offers fluent APIs for constructing workflows programmatically.
-- **Example**: Demonstrates usage patterns and integration examples.
-
-## Key Features
+## Features
 
 - **High-Performance Expression Evaluation**: Uses compiled LINQ expressions for fast execution
-- **C# Syntax Support**: Full C# expression syntax including operators, method calls, and property access
-- **Context-Aware**: Expressions can access workflow variables and context data
-- **Conditional Transitions**: Dynamic branching based on expression results
-- **Async Execution**: Fully asynchronous workflow execution with cancellation support
-- **Extensible Architecture**: Plugin-based design for custom blocks and evaluators
+- **C# Syntax Support**: Full C# expression syntax with operators, method calls, and property access
+- **Async Execution**: Fully asynchronous with cancellation support
+- **Clean Architecture**: Modular design with clear separation of concerns
+- **Extensible**: Plugin-based architecture for custom blocks and evaluators
+- **Context-Aware**: Rich expression evaluation with access to workflow variables
+- **Conditional Branching**: Dynamic workflow branching based on runtime expressions
 
-## Expression Syntax
-
-Expressions support standard C# syntax:
-
-```csharp
-// Variable access
-x > 5
-context.Variables["user"].Age >= 18
-
-// Complex expressions
-(x + y) * 2 == z && status == "active"
-
-// Method calls
-DateTime.Now.Hour > 9
-Math.Max(a, b) > threshold
-
-// Property access
-user.Profile.IsActive && user.Balance > 100
-```
-
-## Usage Example
+## Quick Start
 
 ```csharp
-// Create workflow context
+using FlowFusion.Core;
+using FlowFusion.Expression;
+using FlowFusion.RunTime;
+using FlowFusion.Builder;
+
+// Create execution context
 var context = new FlowExecutionContext(new Dictionary<string, object?> {
     ["x"] = 10.0,
     ["status"] = "active"
 });
 
 // Build workflow
-var workflow = new WorkflowBuilder()
-    .AddBlock("start", new CustomBlock())
-    .AddConditionalTransition("start", "approved", "x > 5 && status == \"active\"")
-    .AddBlock("approved", new ApprovalBlock())
+var workflow = new WorkflowBuilder("sample-workflow")
+    .StartWith(new StartBlock("start"))
+    .AddConditionalTransition("start", "process", "x > 5 && status == \"active\"")
+    .Add(new ProcessBlock("process"))
     .Build();
 
-// Execute workflow
+// Execute
 var engine = new WorkflowEngine(new ExpressionEvaluator());
 await engine.RunAsync(workflow, context);
+```
+
+## Architecture
+
+FlowFusion follows clean architecture principles:
+
+- **Core**: Domain models and interfaces
+- **Expression**: Expression evaluation engine
+- **RunTime**: Workflow execution engine
+- **Builder**: Fluent APIs for workflow construction
+- **Example**: Usage demonstrations
+
+## Expression Syntax
+
+Supports C# syntax for dynamic evaluations:
+
+```csharp
+// Variables
+x > 5
+context.Variables["userId"]
+
+// Complex expressions
+(user.Age >= 18 && user.Balance > 100) || user.IsVip
+
+// Method calls
+DateTime.Now.Hour > 9
+Math.Max(a, b) > threshold
+```
+
+## Installation
+
+```bash
+dotnet add package FlowFusion.Core
+dotnet add package FlowFusion.Expression
+dotnet add package FlowFusion.RunTime
+dotnet add package FlowFusion.Builder
 ```
 
 ## Building and Testing
 
 ```bash
-# Build all projects
+# Build
 dotnet build
 
 # Run tests
@@ -127,7 +93,7 @@ dotnet run
 ```
 src/
 ├── FlowFusion.Core/          # Domain models and interfaces
-├── FlowFusion.Expression/    # Expression evaluation implementation
+├── FlowFusion.Expression/    # Expression evaluation
 ├── FlowFusion.RunTime/       # Workflow execution engine
 └── FlowFusion.Builder/       # Workflow construction APIs
 
@@ -138,21 +104,13 @@ example/
 └── FlowFusion.Example/       # Usage examples
 ```
 
-## Dependencies
-
-- **Core**: No external dependencies
-- **Expression**: Depends on Core
-- **RunTime**: Depends on Core
-- **Builder**: Depends on Core
-- **Tests**: Depends on all projects
-
 ## Contributing
 
 1. Follow clean architecture principles
 2. Add tests for new features
 3. Update documentation
-4. Ensure all builds pass
+4. Ensure all tests pass
 
 ## License
 
-See LICENSE file for details.
+MIT License - see LICENSE file for details.
