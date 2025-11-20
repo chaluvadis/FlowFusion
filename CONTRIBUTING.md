@@ -22,8 +22,8 @@ Thank you for your interest in contributing to **FlowFusion**! We welcome contri
 
 ## Getting Help
 
-- Check existing [issues](https://github.com/chaluvadis/Linked-List-Style-Workflow-Engine/issues) before opening a new one.
-- Use [Discussions](https://github.com/chaluvadis/Linked-List-Style-Workflow-Engine/discussions) or open a new issue for questions.
+- Check existing [issues](https://github.com/chaluvadis/FlowFusion/issues) before opening a new one.
+- Use [Discussions](https://github.com/chaluvadis/FlowFusion/discussions) or open a new issue for questions.
 
 ## License
 
