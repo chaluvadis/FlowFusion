@@ -1,33 +1,38 @@
-using FlowFusion.Core;
-
 namespace FlowFusion.Runtime;
 
-public sealed class WorkflowEngine(IExpressionEvaluator evaluator, ILogger<WorkflowEngine>? logger = null) : IWorkflowEngine
+public sealed class WorkflowEngine(
+    IExpressionEvaluator evaluator,
+    ILogger<WorkflowEngine>? logger = null) : IWorkflowEngine
 {
     /// <summary>
     /// Executes a workflow from its StartBlockId until completion or failure.
     /// The engine evaluates conditional transitions after a successful block execution.
     /// </summary>
-    public async Task RunAsync(IWorkflow workflow, FlowExecutionContext context, CancellationToken cancellation = default)
+    public async Task RunAsync(
+        IWorkflow workflow,
+        FlowExecutionContext context,
+        CancellationToken cancellation = default
+    )
     {
         ArgumentNullException.ThrowIfNull(workflow);
         ArgumentNullException.ThrowIfNull(context);
         var current = workflow.GetBlockById(workflow.StartBlockId);
         while (current is not null)
         {
-            cancellation.ThrowIfCancellationRequested();
+            if (cancellation.IsCancellationRequested) throw new TaskCanceledException();
             logger?.LogDebug("Executing block {BlockId}", current.Id);
             ExecutionResult result;
             try
             {
                 result = await current.ExecuteAsync(context);
-                cancellation.ThrowIfCancellationRequested();
+                if (cancellation.IsCancellationRequested) throw new TaskCanceledException();
             }
             catch (Exception ex)
             {
                 logger?.LogError(ex, "Block {BlockId} threw an exception", current.Id);
                 result = ExecutionResult.Failure(next: null, ex);
             }
+            if (cancellation.IsCancellationRequested) throw new TaskCanceledException();
             if (!result.Succeeded)
             {
                 logger?.LogInformation("Block {BlockId} failed; transitioning to {Next}", current.Id, result.NextBlockId ?? "(none)");
