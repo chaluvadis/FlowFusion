@@ -1,6 +1,20 @@
 <Solution>
-  <Project Path="FlowFusion.Builder/FlowFusion.Builder.csproj" />
-  <Project Path="FlowFusion.Core/FlowFusion.Core.csproj" />
-  <Project Path="FlowFusion.Expression/FlowFusion.Expression.csproj" />
-  <Project Path="FlowFusion.RunTime/FlowFusion.RunTime.csproj" />
+  <Folder Name="/Solution Items/">
+    <File Path="CODE_OF_CONDUCT.md" />
+    <File Path="CONTRIBUTING.md" />
+    <File Path="LICENSE" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/FlowFusion.Builder/FlowFusion.Builder.csproj" />
+    <Project Path="src/FlowFusion.Core/FlowFusion.Core.csproj" />
+    <Project Path="src/FlowFusion.Expression/FlowFusion.Expression.csproj" />
+    <Project Path="src/FlowFusion.RunTime/FlowFusion.RunTime.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="test/FlowFusion.Tests/FlowFusion.Tests.csproj" />
+  </Folder>
+  <Folder Name="/example/">
+    <Project Path="example/FlowFusion.Example/FlowFusion.Example.csproj" />
+  </Folder>
 </Solution>
