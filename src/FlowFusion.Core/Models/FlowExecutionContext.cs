@@ -3,12 +3,13 @@ namespace FlowFusion.Core.Models;
 /// FlowExecutionContext carries input variables and mutable state between blocks.
 /// Keep allocations minimal — use small collections and value semantics where possible.
 /// </summary>
-public class FlowExecutionContext(IReadOnlyDictionary<string, object?> variables)
+public record FlowExecutionContext(IReadOnlyDictionary<string, object?> Variables)
 {
     /// <summary>
     /// Immutable input variables available to all blocks (e.g., domain objects).
     /// </summary>
-    public IReadOnlyDictionary<string, object?> Variables { get; } = variables ?? new Dictionary<string, object?>();
+    public IReadOnlyDictionary<string, object?> Variables { get; }
+        = Variables ?? new Dictionary<string, object?>();
 
     // Local mutable state used as the checkpoint state for the workflow; blocks can set/get values.
     private readonly Dictionary<string, object?> _state = new(StringComparer.Ordinal);
