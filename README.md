@@ -117,19 +117,6 @@ var engine = new WorkflowEngine(new ExpressionEvaluator());
 await engine.RunAsync(workflow, context);
 ```
 
-## Installation
-
-Add the following packages to your .NET project:
-
-```bash
-dotnet add package FlowFusion.Core
-dotnet add package FlowFusion.Expression
-dotnet add package FlowFusion.RunTime
-dotnet add package FlowFusion.Builder
-```
-
-Or install via NuGet Package Manager.
-
 ## Building from Source
 
 ```bash
