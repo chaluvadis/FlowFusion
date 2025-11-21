@@ -19,8 +19,6 @@
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\..\src\FlowFusion.Core\FlowFusion.Core.csproj" />
-		<ProjectReference Include="..\..\src\FlowFusion.Builder\FlowFusion.Builder.csproj" />
-		<ProjectReference Include="..\..\src\FlowFusion.Expression\FlowFusion.Expression.csproj" />
-		<ProjectReference Include="..\..\src\FlowFusion.RunTime\FlowFusion.RunTime.csproj" />
+		<ProjectReference Include="..\..\src\FlowFusion.Workflow\FlowFusion.Workflow.csproj" />
 	</ItemGroup>
 </Project>

@@ -1,4 +1,4 @@
-namespace FlowFusion.Tests.RunTime;
+namespace FlowFusion.Tests.Workflow;
 
 [TestClass]
 public class WorkflowEngineTests
