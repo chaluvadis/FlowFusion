@@ -1,7 +1,7 @@
-﻿using FlowFusion.Core.Interfaces;
+using FlowFusion.Core.Interfaces;
 using FlowFusion.Core.Models;
-using FlowFusion.Expression;
-using FlowFusion.Runtime;
+using FlowFusion.Core;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -10,12 +10,12 @@ var host = Host.CreateDefaultBuilder(args)
     .ConfigureServices(services =>
     {
         services.AddSingleton<IExpressionEvaluator, ExpressionEvaluator>();
-        services.AddSingleton<IWorkflowEngine, WorkflowEngine>();
+
     })
     .Build();
 
 var evaluator = host.Services.GetRequiredService<FlowFusion.Core.Interfaces.IExpressionEvaluator>();
-var engine = host.Services.GetRequiredService<IWorkflowEngine>();
+
 
 Console.WriteLine("FlowFusion Expression Evaluator Examples");
 Console.WriteLine("=======================================");
