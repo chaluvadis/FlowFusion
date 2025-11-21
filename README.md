@@ -37,8 +37,10 @@ var context = new FlowExecutionContext(new Dictionary<string, object?> {
     ["customer"] = new { CreditLimit = 200.0, Status = "Gold" }
 });
 
-// Evaluate expressions
-string expression = "Variables[\"order\"].Total > 100 && Variables[\"customer\"].Status == \"Gold\"";
+// Evaluate expressions - Raw string
+string expression = """
+     Variables["order"].Total > 100 && Variables["customer"].Status == "Gold"
+""";
 bool result = await evaluator.EvaluateAsync(expression, context);
 Console.WriteLine($"Result: {result}"); // Output: Result: True
 ```
@@ -116,19 +118,6 @@ var context = new FlowExecutionContext(new Dictionary<string, object?> {
 var engine = new WorkflowEngine(new ExpressionEvaluator());
 await engine.RunAsync(workflow, context);
 ```
-
-## Installation
-
-Add the following packages to your .NET project:
-
-```bash
-dotnet add package FlowFusion.Core
-dotnet add package FlowFusion.Expression
-dotnet add package FlowFusion.RunTime
-dotnet add package FlowFusion.Builder
-```
-
-Or install via NuGet Package Manager.
 
 ## Building from Source
 
