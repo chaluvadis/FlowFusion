@@ -6,10 +6,8 @@
     <File Path="README.md" />
   </Folder>
   <Folder Name="/src/">
-    <Project Path="src/FlowFusion.Builder/FlowFusion.Builder.csproj" />
     <Project Path="src/FlowFusion.Core/FlowFusion.Core.csproj" />
-    <Project Path="src/FlowFusion.Expression/FlowFusion.Expression.csproj" />
-    <Project Path="src/FlowFusion.RunTime/FlowFusion.RunTime.csproj" />
+    <Project Path="src/FlowFusion.Workflow/FlowFusion.Workflow.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="test/FlowFusion.Tests/FlowFusion.Tests.csproj" />
