@@ -37,8 +37,10 @@ var context = new FlowExecutionContext(new Dictionary<string, object?> {
     ["customer"] = new { CreditLimit = 200.0, Status = "Gold" }
 });
 
-// Evaluate expressions
-string expression = "Variables[\"order\"].Total > 100 && Variables[\"customer\"].Status == \"Gold\"";
+// Evaluate expressions - Raw string
+string expression = """
+     Variables["order"].Total > 100 && Variables["customer"].Status == "Gold"
+""";
 bool result = await evaluator.EvaluateAsync(expression, context);
 Console.WriteLine($"Result: {result}"); // Output: Result: True
 ```
