@@ -11,6 +11,7 @@ public interface IExpressionEvaluator
 
     /// <summary>
     /// Optional: pre-compile or warm-up expression into some cached representation.
+    /// Returns the compiled expression delegate for reuse.
     /// </summary>
-    Task WarmupAsync(string expression, CancellationToken cancellation = default);
+    Task<Func<FlowExecutionContext, bool>> WarmupAsync(string expression, CancellationToken cancellation = default);
 }

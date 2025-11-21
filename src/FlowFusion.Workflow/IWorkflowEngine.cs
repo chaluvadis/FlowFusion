@@ -1,4 +1,4 @@
-namespace FlowFusion.Runtime;
+namespace FlowFusion.Workflow;
 
 public interface IWorkflowEngine
 {
