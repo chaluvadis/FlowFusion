@@ -4,10 +4,12 @@ internal sealed class ExpressionParser(
     IReadOnlyList<Token> tokens,
     ParameterExpression contextParam,
     string variablesPropertyName = "Variables",
-    string contextIdentifier = "context")
+    string contextIdentifier = "context",
+    bool autoVariablesMode = false)
 {
     private readonly string _variablesPropertyName = variablesPropertyName ?? throw new ArgumentNullException(nameof(variablesPropertyName));
     private readonly string _contextIdentifier = contextIdentifier ?? throw new ArgumentNullException(nameof(contextIdentifier));
+    private readonly bool _autoVariablesMode = autoVariablesMode;
 
     private readonly IReadOnlyList<Token> _tokens = tokens ?? throw new ArgumentNullException(nameof(tokens));
     private readonly ParameterExpression _contextParam = contextParam ?? throw new ArgumentNullException(nameof(contextParam));
@@ -253,9 +255,16 @@ internal sealed class ExpressionParser(
         if (string.Equals(identifier, _contextIdentifier, StringComparison.Ordinal))
             return _contextParam;
 
+        // In auto-variables mode, treat bare identifiers as Variables["identifier"]
+        if (_autoVariablesMode)
+        {
+            var variablesProp = Expression.Property(_contextParam, _variablesPropertyName);
+            return Expression.Call(variablesProp, "get_Item", typeArguments: null, Expression.Constant(identifier));
+        }
+
         // fallback: indexer access on context.Variables (calls get_Item)
-        var variablesProp = Expression.Property(_contextParam, _variablesPropertyName);
-        return Expression.Call(variablesProp, "get_Item", typeArguments: null, Expression.Constant(identifier));
+        var variablesPropFallback = Expression.Property(_contextParam, _variablesPropertyName);
+        return Expression.Call(variablesPropFallback, "get_Item", typeArguments: null, Expression.Constant(identifier));
     }
 
     private Expression ParsePropertyAccess(Expression expr, ref string? lastIdentifier)

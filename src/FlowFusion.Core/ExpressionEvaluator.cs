@@ -5,10 +5,19 @@ namespace FlowFusion.Core;
 /// Compiles expressions to delegates for maximum runtime performance.
 /// Supports multiple variable access patterns and complex expressions.
 /// </summary>
-public sealed class ExpressionEvaluator : IExpressionEvaluator
+/// <remarks>
+/// Initializes a new instance with auto-variables mode.
+/// </remarks>
+/// <param name="autoVariablesMode">If true, bare identifiers are automatically mapped to Variables["identifier"].</param>
+public sealed class ExpressionEvaluator(bool autoVariablesMode) : IExpressionEvaluator
 {
     private readonly ConcurrentDictionary<string, Func<FlowExecutionContext, bool>> _compiledExpressions = new();
     private readonly ITokenizer _tokenizer = new ExpressionTokenizer();
+
+    /// <summary>
+    /// Initializes a new instance with default settings (Variables access required).
+    /// </summary>
+    public ExpressionEvaluator() : this(false) { }
 
     /// <summary>
     /// Warms up an expression by parsing and compiling it to a delegate.
@@ -62,7 +71,7 @@ public sealed class ExpressionEvaluator : IExpressionEvaluator
     private Expr ParseExpression(string expression, ParameterExpression contextParam)
     {
         var tokens = _tokenizer.Tokenize(expression);
-        var parser = new ExpressionParser(tokens, contextParam, "Variables", "context");
+        var parser = new ExpressionParser(tokens, contextParam, "Variables", "context", autoVariablesMode);
         return parser.Parse();
     }
 }
