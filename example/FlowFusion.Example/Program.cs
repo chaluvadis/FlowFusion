@@ -9,17 +9,14 @@ using Microsoft.Extensions.Hosting;
 var host = Host.CreateDefaultBuilder(args)
     .ConfigureServices(services =>
     {
-        // Default evaluator (requires Variables["key"] syntax)
+        // Default evaluator (auto-variables mode enabled by default)
         services.AddSingleton<IExpressionEvaluator, ExpressionEvaluator>();
-
-        // Auto-variables evaluator (allows bare identifiers like "order.Total")
-        services.AddSingleton<ExpressionEvaluator>(sp => new ExpressionEvaluator(autoVariablesMode: true));
-
+        services.AddSingleton<ExpressionEvaluator>();
     })
     .Build();
 
 var evaluator = host.Services.GetRequiredService<FlowFusion.Core.Interfaces.IExpressionEvaluator>();
-var autoEvaluator = host.Services.GetRequiredService<ExpressionEvaluator>();
+var traditionalEvaluator = new ExpressionEvaluator(autoVariablesMode: false);
 
 
 Console.WriteLine("FlowFusion Expression Evaluator Examples");
@@ -118,9 +115,18 @@ await RunExample("Mathematical Calculation",
         "Variables[\"x\"] @ invalid",
         new FlowExecutionContext(new Dictionary<string, object?> { ["x"] = 10 }));
 
-    // Example 12: Auto-variables mode - Simplified syntax
-    await RunExampleAuto("Auto-Variables Mode",
+    // Example 12: Auto-variables mode - Default simplified syntax
+    await RunExample("Auto-Variables Mode (Default)",
         "order.Total > 100 && customer.Status == \"Gold\"",
+        new FlowExecutionContext(new Dictionary<string, object?>
+        {
+            ["order"] = new { Total = 150.0 },
+            ["customer"] = new { Status = "Gold" }
+        }));
+
+    // Example 13: Traditional Variables syntax (explicitly disabled auto-variables)
+    await RunExampleTraditional("Traditional Variables Syntax",
+        "Variables[\"order\"].Total > 100 && Variables[\"customer\"].Status == \"Gold\"",
         new FlowExecutionContext(new Dictionary<string, object?>
         {
             ["order"] = new { Total = 150.0 },
@@ -147,7 +153,7 @@ await RunExample("Mathematical Calculation",
         }
     }
 
-    async Task RunExampleAuto(string title, string expression, FlowExecutionContext context)
+    async Task RunExampleTraditional(string title, string expression, FlowExecutionContext context)
     {
         Console.WriteLine($"\n{title}:");
         Console.WriteLine($"Expression: {expression}");
@@ -155,10 +161,10 @@ await RunExample("Mathematical Calculation",
         try
         {
             // Warmup (compile) the expression
-            await autoEvaluator.WarmupAsync(expression);
+            await traditionalEvaluator.WarmupAsync(expression);
 
             // Evaluate
-            var result = await autoEvaluator.EvaluateAsync(expression, context, CancellationToken.None);
+            var result = await traditionalEvaluator.EvaluateAsync(expression, context, CancellationToken.None);
             Console.WriteLine($"Result: {result}");
         }
         catch (Exception ex)
