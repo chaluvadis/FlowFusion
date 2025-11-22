@@ -13,11 +13,12 @@ public sealed class ExpressionEvaluator(bool autoVariablesMode) : IExpressionEva
 {
     private readonly ConcurrentDictionary<string, Func<FlowExecutionContext, bool>> _compiledExpressions = new();
     private readonly ITokenizer _tokenizer = new ExpressionTokenizer();
+    private readonly IExpressionParser _parser = new ExpressionParser();
 
     /// <summary>
-    /// Initializes a new instance with default settings (Variables access required).
+    /// Initializes a new instance with default settings (auto-variables mode enabled).
     /// </summary>
-    public ExpressionEvaluator() : this(false) { }
+    public ExpressionEvaluator() : this(true) { }
 
     /// <summary>
     /// Warms up an expression by parsing and compiling it to a delegate.
@@ -33,7 +34,7 @@ public sealed class ExpressionEvaluator(bool autoVariablesMode) : IExpressionEva
             if (expression.Length > 10000)
                 throw new ArgumentException("Expression is too long. Maximum allowed length is 10000 characters.", nameof(expression));
 
-            var compiled = _compiledExpressions.GetOrAdd(expression, expr => CompileExpression(expr).Compile());
+            var compiled = _compiledExpressions.GetOrAdd(expression, expr => CompileExpression(expr, cancellation).Compile());
             return ValueTask.FromResult(compiled);
         }
 
@@ -56,22 +57,23 @@ public sealed class ExpressionEvaluator(bool autoVariablesMode) : IExpressionEva
         if (expression.Length > 10000)
             throw new ArgumentException("Expression is too long. Maximum allowed length is 10000 characters.", nameof(expression));
 
-        var compiled = _compiledExpressions.GetOrAdd(expression, expr => CompileExpression(expr).Compile());
+        var compiled = _compiledExpressions.GetOrAdd(expression, expr => CompileExpression(expr, cancellation).Compile());
         cancellation.ThrowIfCancellationRequested();
         return ValueTask.FromResult(compiled(context));
     }
 
-    private Expression<Func<FlowExecutionContext, bool>> CompileExpression(string expression)
+    private Expression<Func<FlowExecutionContext, bool>> CompileExpression(string expression, CancellationToken cancellation = default)
     {
+        cancellation.ThrowIfCancellationRequested();
         var parameter = Expr.Parameter(typeof(FlowExecutionContext), "context");
         var body = ParseExpression(expression, parameter);
+        cancellation.ThrowIfCancellationRequested();
         return Expr.Lambda<Func<FlowExecutionContext, bool>>(Expr.Convert(body, typeof(bool)), parameter);
     }
 
     private Expr ParseExpression(string expression, ParameterExpression contextParam)
     {
         var tokens = _tokenizer.Tokenize(expression);
-        var parser = new ExpressionParser(tokens, contextParam, "Variables", "context", autoVariablesMode);
-        return parser.Parse();
+        return _parser.Parse(tokens, contextParam, "Variables", "context", autoVariablesMode);
     }
 }
