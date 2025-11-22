@@ -328,6 +328,60 @@ public class ExpressionEvaluatorTests
         // Assert
         Assert.IsTrue(result);
     }
+
+    [TestMethod]
+    public async Task EvaluateAsync_AutoVariablesMode_SimpleIdentifiers_ReturnsTrue()
+    {
+        // Arrange
+        var evaluator = new ExpressionEvaluator(autoVariablesMode: true);
+        var context = new FlowExecutionContext(new Dictionary<string, object?>
+        {
+            ["order"] = new { Total = 150.0 },
+            ["customer"] = new { Status = "Gold" }
+        });
+
+        // Act
+        var result = await evaluator.EvaluateAsync("order.Total > 100 && customer.Status == \"Gold\"", context, TestContext.CancellationToken);
+
+        // Assert
+        Assert.IsTrue(result);
+    }
+
+    [TestMethod]
+    public async Task EvaluateAsync_AutoVariablesMode_MixedSyntax_ReturnsTrue()
+    {
+        // Arrange
+        var evaluator = new ExpressionEvaluator(autoVariablesMode: true);
+        var context = new FlowExecutionContext(new Dictionary<string, object?>
+        {
+            ["order"] = new { Total = 150.0 },
+            ["threshold"] = 100.0
+        });
+
+        // Act - Mix of auto-variables and explicit Variables access
+        var result = await evaluator.EvaluateAsync("order.Total > Variables[\"threshold\"]", context, TestContext.CancellationToken);
+
+        // Assert
+        Assert.IsTrue(result);
+    }
+
+    [TestMethod]
+    public async Task EvaluateAsync_AutoVariablesMode_VariablesKeywordStillWorks_ReturnsTrue()
+    {
+        // Arrange
+        var evaluator = new ExpressionEvaluator(autoVariablesMode: true);
+        var context = new FlowExecutionContext(new Dictionary<string, object?>
+        {
+            ["x"] = 10.0,
+            ["y"] = 5.0
+        });
+
+        // Act - Variables keyword should still work in auto mode
+        var result = await evaluator.EvaluateAsync("Variables[\"x\"] > Variables[\"y\"]", context, TestContext.CancellationToken);
+
+        // Assert
+        Assert.IsTrue(result);
+    }
     private class TestObject
     {
         public int Value { get; set; }
