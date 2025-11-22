@@ -2,22 +2,18 @@
 <p style="display:flex;text-align:center;">
 <img src="./resources/logo-transparent.png" width="120" height="80">
 </p>
-A high-performance, modern expression evaluation engine for .NET applications, supporting C# syntax with advanced features like string literals, async execution, and customizable parsing.
+A high-performance expression evaluation engine for .NET applications.
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![.NET](https://img.shields.io/badge/.NET-10.0-purple.svg)](https://dotnet.microsoft.com)
 
 ## Features
 
-- **High-Performance Evaluation**: Compiled LINQ expressions with `ValueTask` for optimal async performance
-- **Rich C# Syntax Support**: Operators, method calls, property access, string literals, and escaped strings
-- **Auto-Variables Mode**: Simplified syntax where bare identifiers automatically map to `Variables["identifier"]`
-- **Async & Cancellation**: Fully asynchronous with `CancellationToken` support
-- **Context-Aware Execution**: Access to variables, complex objects, and custom property names
-- **Robust Error Handling**: Detailed error messages with context for debugging
-- **Security**: Input validation and length limits to prevent DoS attacks
-- **Modular Architecture**: Clean separation with dependency injection support
-- **Zero-Allocation Parsing**: Uses `ReadOnlySpan<char>` for efficient tokenization
+- **High-Performance Expression Evaluation**: Uses compiled LINQ expressions for fast execution
+- **C# Syntax Support**: Full C# expression syntax with operators, method calls, and property access
+- **Async Execution**: Fully asynchronous with cancellation support
+- **Context-Aware**: Rich evaluation with access to variables and complex objects
+- **Clean Architecture**: Modular design with clear separation of concerns
 
 ## Quick Start - Expression Evaluation
 
@@ -65,10 +61,10 @@ Console.WriteLine($"Valid user: {isValidUser}"); // Output: Valid user: True
 
 FlowFusion follows clean architecture with modern .NET practices:
 
-- **FlowFusion.Core**: Core domain models, interfaces (`IExpressionEvaluator`, `ITokenizer`), and evaluation logic
-- **FlowFusion.Workflow**: Workflow execution engine with conditional branching and state management
-- **Test Projects**: Comprehensive unit tests with 100% coverage on core functionality
-- **Example**: Practical usage demonstrations
+- **FlowFusion.Core**: Domain models and interfaces (IExpressionEvaluator, etc.)
+- **FlowFusion.Expression**: High-performance expression evaluation engine
+- **FlowFusion.RunTime**: Workflow execution engine with conditional branching
+- **Example**: Usage demonstrations
 
 ## Expression Syntax
 
@@ -118,51 +114,6 @@ Data["item"].Status == "Active"  // When using custom "Data" property
 ctx.Variables["item"].Count > 0  // When using custom "ctx" identifier
 ```
 
-## Advanced Features
-
-### Auto-Variables Mode
-For simplified expressions, enable auto-variables mode where bare identifiers are automatically mapped to `Variables["identifier"]`:
-
-```csharp
-// Enable auto-variables mode
-var evaluator = new ExpressionEvaluator(autoVariablesMode: true);
-
-// Now you can write simple expressions
-string expression = "order.Total > 100 && customer.Status == \"Gold\"";
-bool result = await evaluator.EvaluateAsync(expression, context);
-```
-
-### Custom Property Names
-The parser supports customizable property names for different contexts:
-
-```csharp
-// Default behavior
-var evaluator = new ExpressionEvaluator(); // Uses "Variables" and "context"
-
-// For custom contexts, you can extend ExpressionEvaluator
-// or use ExpressionParser directly with custom parameters
-var parser = new ExpressionParser(tokens, contextParam, "Data", "ctx");
-// This allows expressions like: Data["item"] or ctx.Variables["item"]
-```
-
-### Error Handling
-```csharp
-try
-{
-    var result = await evaluator.EvaluateAsync("invalid @ syntax", context);
-}
-catch (ArgumentException ex)
-{
-    Console.WriteLine($"Parse error: {ex.Message}");
-    // Output: Parse error: Unexpected character '@' at position 8. Context: 'invalid @'
-}
-```
-
-### Performance Optimization
-- Pre-compile expressions with `WarmupAsync` for repeated evaluations
-- Zero-allocation tokenization using spans
-- Efficient async patterns with `ValueTask`
-
 ## Building from Source
 
 ```bash
@@ -185,14 +136,9 @@ dotnet run
 
 ```
 src/
-├── FlowFusion.Core/          # Core evaluation engine, interfaces, and models
-│   ├── Interfaces/           # IExpressionEvaluator, ITokenizer
-│   ├── Models/               # FlowExecutionContext, etc.
-│   ├── ExpressionEvaluator.cs # Main evaluator
-│   ├── ExpressionParser.cs   # LINQ expression parser
-│   ├── ExpressionTokenizer.cs # Span-based tokenizer
-│   └── ExpressionHelper.cs   # Runtime evaluation helpers
-└── FlowFusion.Workflow/      # Workflow execution engine
+├── FlowFusion.Core/          # Domain models and interfaces
+├── FlowFusion.Expression/    # Expression evaluation
+└── FlowFusion.RunTime/       # Workflow execution engine
 
 test/
 ├── FlowFusion.Tests/         # Unit tests for all components
