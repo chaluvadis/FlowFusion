@@ -2,7 +2,7 @@
 <p style="display:flex;text-align:center;">
 <img src="./resources/logo-transparent.png" width="120" height="80">
 </p>
-A high-performance, modern expression evaluation engine for .NET applications featuring **Auto-Variables Mode** for natural syntax like `order.Total > 100`, plus full C# expression support with async execution and customizable parsing.
+A high-performance, modern expression evaluation engine for .NET applications with **Auto-Variables Mode enabled by default** for natural syntax like `order.Total > 100`, plus full C# expression support with async execution and customizable parsing.
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![.NET](https://img.shields.io/badge/.NET-10.0-purple.svg)](https://dotnet.microsoft.com)
@@ -37,8 +37,8 @@ var context = new FlowExecutionContext(new Dictionary<string, object?> {
     ["user"] = new { Name = "John Doe", Age = 25 }
 });
 
-// 🎯 Auto-Variables Mode (Recommended for user-friendly expressions)
-var evaluator = new ExpressionEvaluator(autoVariablesMode: true);
+// ✨ Auto-Variables Mode (Default - Natural Syntax)
+var evaluator = new ExpressionEvaluator(); // Auto-variables enabled by default
 
 // Simple, natural syntax - automatically maps to Variables["key"]
 string expression = "order.Total > 100 && customer.Status == \"Gold\"";
@@ -51,7 +51,7 @@ bool isValidUser = await evaluator.EvaluateAsync(userCheck, context);
 Console.WriteLine($"Valid user: {isValidUser}"); // Output: Valid user: True
 
 // Traditional Variables syntax (still supported)
-var traditionalEvaluator = new ExpressionEvaluator(); // autoVariablesMode: false
+var traditionalEvaluator = new ExpressionEvaluator(autoVariablesMode: false);
 string traditionalExpr = """
     Variables["order"].Total > 100 && Variables["customer"].Status == "Gold"
 """;
