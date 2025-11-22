@@ -1,84 +1,140 @@
 namespace FlowFusion.Core;
 
-internal class ExpressionParser(List<Token> tokens, ParameterExpression contextParam)
+internal sealed class ExpressionParser(
+    IReadOnlyList<Token> tokens,
+    ParameterExpression contextParam,
+    string variablesPropertyName = "Variables",
+    string contextIdentifier = "context",
+    bool autoVariablesMode = false)
 {
+    private readonly string _variablesPropertyName = variablesPropertyName ?? throw new ArgumentNullException(nameof(variablesPropertyName));
+    private readonly string _contextIdentifier = contextIdentifier ?? throw new ArgumentNullException(nameof(contextIdentifier));
+    private readonly bool _autoVariablesMode = autoVariablesMode;
+
+    private readonly IReadOnlyList<Token> _tokens = tokens ?? throw new ArgumentNullException(nameof(tokens));
+    private readonly ParameterExpression _contextParam = contextParam ?? throw new ArgumentNullException(nameof(contextParam));
     private int _position = 0;
-    public Expr Parse() => ParseOrExpression();
-    private Expr ParseOrExpression()
+
+    public Expression Parse() => ParseOrExpression();
+
+    #region MethodInfo cache
+    private static MethodInfo GetHelperMethod(string name, params Type[] paramTypes)
+    {
+        var mi = typeof(ExpressionHelper).GetMethod(
+            name,
+            BindingFlags.Public | BindingFlags.Static,
+            binder: null,
+            types: paramTypes,
+            modifiers: null);
+
+        if (mi is null)
+            throw new MissingMethodException(typeof(ExpressionHelper).FullName, name);
+
+        return mi;
+    }
+
+    private static readonly MethodInfo EqualMethod = GetHelperMethod(nameof(ExpressionHelper.Equal), typeof(object), typeof(object));
+    private static readonly MethodInfo NotEqualMethod = GetHelperMethod(nameof(ExpressionHelper.NotEqual), typeof(object), typeof(object));
+    private static readonly MethodInfo LessThanMethod = GetHelperMethod(nameof(ExpressionHelper.LessThan), typeof(object), typeof(object));
+    private static readonly MethodInfo GreaterThanMethod = GetHelperMethod(nameof(ExpressionHelper.GreaterThan), typeof(object), typeof(object));
+    private static readonly MethodInfo LessEqualMethod = GetHelperMethod(nameof(ExpressionHelper.LessEqual), typeof(object), typeof(object));
+    private static readonly MethodInfo GreaterEqualMethod = GetHelperMethod(nameof(ExpressionHelper.GreaterEqual), typeof(object), typeof(object));
+    private static readonly MethodInfo AndMethod = GetHelperMethod(nameof(ExpressionHelper.And), typeof(object), typeof(object));
+    private static readonly MethodInfo OrMethod = GetHelperMethod(nameof(ExpressionHelper.Or), typeof(object), typeof(object));
+    private static readonly MethodInfo NotMethod = GetHelperMethod(nameof(ExpressionHelper.Not), typeof(object));
+    private static readonly MethodInfo AddMethod = GetHelperMethod(nameof(ExpressionHelper.Add), typeof(object), typeof(object));
+    private static readonly MethodInfo SubtractMethod = GetHelperMethod(nameof(ExpressionHelper.Subtract), typeof(object), typeof(object));
+    private static readonly MethodInfo MultiplyMethod = GetHelperMethod(nameof(ExpressionHelper.Multiply), typeof(object), typeof(object));
+    private static readonly MethodInfo DivideMethod = GetHelperMethod(nameof(ExpressionHelper.Divide), typeof(object), typeof(object));
+    private static readonly MethodInfo ModuloMethod = GetHelperMethod(nameof(ExpressionHelper.Modulo), typeof(object), typeof(object));
+    private static readonly MethodInfo CallMethod = GetHelperMethod(nameof(ExpressionHelper.CallMethod), typeof(object), typeof(string), typeof(object[]));
+    #endregion
+
+    #region Parsing helpers
+    private static Expression ConvertToObject(Expression e) => Expression.Convert(e, typeof(object));
+    private Token? Current => _position < _tokens.Count ? _tokens[_position] : null;
+    private bool Peek(TokenType type) => Current?.Type == type;
+    private bool Match(TokenType type)
+    {
+        if (Peek(type)) { _position++; return true; }
+        return false;
+    }
+    private Token Consume(TokenType type)
+    {
+        if (!Peek(type))
+            throw new ParseException($"Expected token {type} at position {_position}, got {Current?.Type} (value: {Current?.Value})");
+        return _tokens[_position++];
+    }
+    private void Expect(TokenType type) => Consume(type);
+    #endregion
+
+    private Expression ParseOrExpression()
     {
         var left = ParseAndExpression();
         while (Match(TokenType.Or))
         {
             var right = ParseAndExpression();
-            left = Expr.Call(OrMethod, Expr.Convert(left, typeof(object)), Expr.Convert(right, typeof(object)));
+            left = Expression.Call(OrMethod, ConvertToObject(left), ConvertToObject(right));
         }
         return left;
     }
-    private Expr ParseAndExpression()
+
+    private Expression ParseAndExpression()
     {
         var left = ParseEqualityExpression();
         while (Match(TokenType.And))
         {
             var right = ParseEqualityExpression();
-            left = Expr.Call(AndMethod, Expr.Convert(left, typeof(object)), Expr.Convert(right, typeof(object)));
+            left = Expression.Call(AndMethod, ConvertToObject(left), ConvertToObject(right));
         }
         return left;
     }
-    private static readonly System.Reflection.MethodInfo EqualMethod = typeof(ExpressionHelper).GetMethod("Equal", [typeof(object), typeof(object)])!;
-    private static readonly System.Reflection.MethodInfo NotEqualMethod = typeof(ExpressionHelper).GetMethod("NotEqual", [typeof(object), typeof(object)])!;
-    private static readonly System.Reflection.MethodInfo LessThanMethod = typeof(ExpressionHelper).GetMethod("LessThan", [typeof(object), typeof(object)])!;
-    private static readonly System.Reflection.MethodInfo GreaterThanMethod = typeof(ExpressionHelper).GetMethod("GreaterThan", [typeof(object), typeof(object)])!;
-    private static readonly System.Reflection.MethodInfo LessEqualMethod = typeof(ExpressionHelper).GetMethod("LessEqual", [typeof(object), typeof(object)])!;
-    private static readonly System.Reflection.MethodInfo GreaterEqualMethod = typeof(ExpressionHelper).GetMethod("GreaterEqual", [typeof(object), typeof(object)])!;
-    private static readonly System.Reflection.MethodInfo AndMethod = typeof(ExpressionHelper).GetMethod("And", [typeof(object), typeof(object)])!;
-    private static readonly System.Reflection.MethodInfo OrMethod = typeof(ExpressionHelper).GetMethod("Or", [typeof(object), typeof(object)])!;
-    private static readonly System.Reflection.MethodInfo NotMethod = typeof(ExpressionHelper).GetMethod("Not", [typeof(object)])!;
-    private static readonly System.Reflection.MethodInfo AddMethod = typeof(ExpressionHelper).GetMethod("Add", [typeof(object), typeof(object)])!;
-    private static readonly System.Reflection.MethodInfo SubtractMethod = typeof(ExpressionHelper).GetMethod("Subtract", [typeof(object), typeof(object)])!;
-    private static readonly System.Reflection.MethodInfo MultiplyMethod = typeof(ExpressionHelper).GetMethod("Multiply", [typeof(object), typeof(object)])!;
-    private static readonly System.Reflection.MethodInfo DivideMethod = typeof(ExpressionHelper).GetMethod("Divide", [typeof(object), typeof(object)])!;
-    private static readonly System.Reflection.MethodInfo ModuloMethod = typeof(ExpressionHelper).GetMethod("Modulo", [typeof(object), typeof(object)])!;
-    private Expr ParseEqualityExpression()
+
+    private Expression ParseEqualityExpression()
     {
         var left = ParseRelationalExpression();
         if (Match(TokenType.Equal))
         {
             var right = ParseRelationalExpression();
-            left = Expr.Call(EqualMethod, Expr.Convert(left, typeof(object)), Expr.Convert(right, typeof(object)));
+            left = Expression.Call(EqualMethod, ConvertToObject(left), ConvertToObject(right));
         }
         else if (Match(TokenType.NotEqual))
         {
             var right = ParseRelationalExpression();
-            left = Expr.Call(NotEqualMethod, Expr.Convert(left, typeof(object)), Expr.Convert(right, typeof(object)));
+            left = Expression.Call(NotEqualMethod, ConvertToObject(left), ConvertToObject(right));
         }
         return left;
     }
-    private Expr ParseRelationalExpression()
+
+    private Expression ParseRelationalExpression()
     {
         var left = ParseAdditiveExpression();
+
         if (Match(TokenType.Less))
         {
             var right = ParseAdditiveExpression();
-            left = Expr.Call(LessThanMethod, Expr.Convert(left, typeof(object)), Expr.Convert(right, typeof(object)));
+            left = Expression.Call(LessThanMethod, ConvertToObject(left), ConvertToObject(right));
         }
         else if (Match(TokenType.Greater))
         {
             var right = ParseAdditiveExpression();
-            left = Expr.Call(GreaterThanMethod, Expr.Convert(left, typeof(object)), Expr.Convert(right, typeof(object)));
+            left = Expression.Call(GreaterThanMethod, ConvertToObject(left), ConvertToObject(right));
         }
         else if (Match(TokenType.LessEqual))
         {
             var right = ParseAdditiveExpression();
-            left = Expr.Call(LessEqualMethod, Expr.Convert(left, typeof(object)), Expr.Convert(right, typeof(object)));
+            left = Expression.Call(LessEqualMethod, ConvertToObject(left), ConvertToObject(right));
         }
         else if (Match(TokenType.GreaterEqual))
         {
             var right = ParseAdditiveExpression();
-            left = Expr.Call(GreaterEqualMethod, Expr.Convert(left, typeof(object)), Expr.Convert(right, typeof(object)));
+            left = Expression.Call(GreaterEqualMethod, ConvertToObject(left), ConvertToObject(right));
         }
+
         return left;
     }
-    private Expr ParseAdditiveExpression()
+
+    private Expression ParseAdditiveExpression()
     {
         var left = ParseMultiplicativeExpression();
         while (true)
@@ -86,21 +142,19 @@ internal class ExpressionParser(List<Token> tokens, ParameterExpression contextP
             if (Match(TokenType.Plus))
             {
                 var right = ParseMultiplicativeExpression();
-                left = Expr.Call(AddMethod, Expr.Convert(left, typeof(object)), Expr.Convert(right, typeof(object)));
+                left = Expression.Call(AddMethod, ConvertToObject(left), ConvertToObject(right));
             }
             else if (Match(TokenType.Minus))
             {
                 var right = ParseMultiplicativeExpression();
-                left = Expr.Call(SubtractMethod, Expr.Convert(left, typeof(object)), Expr.Convert(right, typeof(object)));
+                left = Expression.Call(SubtractMethod, ConvertToObject(left), ConvertToObject(right));
             }
-            else
-            {
-                break;
-            }
+            else break;
         }
         return left;
     }
-    private Expr ParseMultiplicativeExpression()
+
+    private Expression ParseMultiplicativeExpression()
     {
         var left = ParseUnaryExpression();
         while (true)
@@ -108,35 +162,34 @@ internal class ExpressionParser(List<Token> tokens, ParameterExpression contextP
             if (Match(TokenType.Multiply))
             {
                 var right = ParseUnaryExpression();
-                left = Expr.Call(MultiplyMethod, Expr.Convert(left, typeof(object)), Expr.Convert(right, typeof(object)));
+                left = Expression.Call(MultiplyMethod, ConvertToObject(left), ConvertToObject(right));
             }
             else if (Match(TokenType.Divide))
             {
                 var right = ParseUnaryExpression();
-                left = Expr.Call(DivideMethod, Expr.Convert(left, typeof(object)), Expr.Convert(right, typeof(object)));
+                left = Expression.Call(DivideMethod, ConvertToObject(left), ConvertToObject(right));
             }
             else if (Match(TokenType.Modulo))
             {
                 var right = ParseUnaryExpression();
-                left = Expr.Call(ModuloMethod, Expr.Convert(left, typeof(object)), Expr.Convert(right, typeof(object)));
+                left = Expression.Call(ModuloMethod, ConvertToObject(left), ConvertToObject(right));
             }
-            else
-            {
-                break;
-            }
+            else break;
         }
         return left;
     }
-    private Expr ParseUnaryExpression()
+
+    private Expression ParseUnaryExpression()
     {
         if (Match(TokenType.Not))
         {
             var operand = ParseUnaryExpression();
-            return Expr.Call(NotMethod, Expr.Convert(operand, typeof(object)));
+            return Expression.Call(NotMethod, ConvertToObject(operand));
         }
         return ParsePrimaryExpression();
     }
-    private Expr ParsePrimaryExpression()
+
+    private Expression ParsePrimaryExpression()
     {
         if (Match(TokenType.LParen))
         {
@@ -144,26 +197,32 @@ internal class ExpressionParser(List<Token> tokens, ParameterExpression contextP
             Expect(TokenType.RParen);
             return expr;
         }
+
         if (Peek(TokenType.Identifier))
             return ParseIdentifierExpression();
 
         if (Peek(TokenType.Number))
         {
             var token = Consume(TokenType.Number);
-            if (double.TryParse(token.Value, out var value))
-                return Expr.Constant((object?)value);
-            throw new ArgumentException($"Invalid number: {token.Value}");
+            if (double.TryParse(token.Value, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var value))
+                return Expression.Constant((object?)value);
+            throw new ParseException($"Invalid number '{token.Value}' at position {_position - 1}");
         }
-        if (Peek(TokenType.String))
-            return Expr.Constant((object?)Consume(TokenType.String).Value);
 
-        throw new ArgumentException($"Unexpected token: {Current?.Type}");
+        if (Peek(TokenType.String))
+        {
+            var token = Consume(TokenType.String);
+            return Expression.Constant((object?)token.Value);
+        }
+
+        throw new ParseException($"Unexpected token {Current?.Type} (value: {Current?.Value}) at position {_position}");
     }
-    private Expr ParseIdentifierExpression()
+
+    private Expression ParseIdentifierExpression()
     {
         var identifier = Consume(TokenType.Identifier).Value;
-        var expr = CreateBaseExpression(identifier);
-        var lastIdentifier = identifier;
+        Expression expr = CreateBaseExpression(identifier);
+        string? lastIdentifier = identifier;
 
         while (true)
         {
@@ -181,43 +240,57 @@ internal class ExpressionParser(List<Token> tokens, ParameterExpression contextP
                 expr = ParseMethodCall(expr, lastIdentifier ?? identifier);
                 lastIdentifier = null;
             }
-            else
-            {
-                break;
-            }
+            else break;
         }
 
         return expr;
     }
-    private Expr CreateBaseExpression(string identifier)
+
+    private Expression CreateBaseExpression(string identifier)
     {
-        return identifier switch
+        // "Variables" property on the context (e.g. context.Variables)
+        if (string.Equals(identifier, _variablesPropertyName, StringComparison.Ordinal))
+            return Expression.Property(_contextParam, _variablesPropertyName);
+
+        if (string.Equals(identifier, _contextIdentifier, StringComparison.Ordinal))
+            return _contextParam;
+
+        // In auto-variables mode, treat bare identifiers as Variables["identifier"]
+        if (_autoVariablesMode)
         {
-            "Variables" => Expr.Property(contextParam, "Variables"),
-            "context" => contextParam,
-            _ => Expr.Call(Expr.Property(contextParam, "Variables"), "get_Item", null, Expr.Constant(identifier))
-        };
+            var variablesProp = Expression.Property(_contextParam, _variablesPropertyName);
+            return Expression.Call(variablesProp, "get_Item", typeArguments: null, Expression.Constant(identifier));
+        }
+
+        // fallback: indexer access on context.Variables (calls get_Item)
+        var variablesPropFallback = Expression.Property(_contextParam, _variablesPropertyName);
+        return Expression.Call(variablesPropFallback, "get_Item", typeArguments: null, Expression.Constant(identifier));
     }
-    private MethodCallExpression ParsePropertyAccess(Expr expr, ref string lastIdentifier)
+
+    private Expression ParsePropertyAccess(Expression expr, ref string? lastIdentifier)
     {
         lastIdentifier = Consume(TokenType.Identifier).Value;
-        return Expr.Call(typeof(ExpressionHelper), "GetProperty", null, expr, Expr.Constant(lastIdentifier));
+        var nameExpr = Expression.Constant(lastIdentifier);
+        return Expression.Call(typeof(ExpressionHelper), nameof(ExpressionHelper.GetProperty), typeArguments: null, expr, nameExpr);
     }
-    private MethodCallExpression ParseIndexerAccess(Expr expr)
+
+    private Expression ParseIndexerAccess(Expression expr)
     {
         var indexExpr = ParseOrExpression();
         Expect(TokenType.RBracket);
-        return Expr.Call(typeof(ExpressionHelper), "GetIndexer", null, expr, Expr.Convert(indexExpr, typeof(object)));
+        return Expression.Call(typeof(ExpressionHelper), nameof(ExpressionHelper.GetIndexer), typeArguments: null, expr, ConvertToObject(indexExpr));
     }
-    private MethodCallExpression ParseMethodCall(Expr expr, string methodName)
+
+    private Expression ParseMethodCall(Expression expr, string methodName)
     {
         var args = ParseMethodArguments();
-        var argsArray = Expr.NewArrayInit(typeof(object), args.Select(a => Expr.Convert(a, typeof(object))));
-        return Expr.Call(typeof(ExpressionHelper), "CallMethod", null, expr, Expr.Constant(methodName), argsArray);
+        var argsArray = Expression.NewArrayInit(typeof(object), args.Select(a => ConvertToObject(a)));
+        return Expression.Call(CallMethod, expr, Expression.Constant(methodName), argsArray);
     }
-    private List<Expr> ParseMethodArguments()
+
+    private List<Expression> ParseMethodArguments()
     {
-        var args = new List<Expr>();
+        var args = new List<Expression>();
         if (!Peek(TokenType.RParen))
         {
             do
@@ -229,17 +302,9 @@ internal class ExpressionParser(List<Token> tokens, ParameterExpression contextP
         Expect(TokenType.RParen);
         return args;
     }
-    private bool Match(TokenType type)
+
+    // Custom parse exception to provide context
+    private sealed class ParseException(string message) : Exception(message)
     {
-        if (Peek(type)) { _position++; return true; }
-        return false;
     }
-    private bool Peek(TokenType type) => Current?.Type == type;
-    private Token Consume(TokenType type)
-    {
-        if (!Peek(type)) throw new ArgumentException($"Expected {type}, got {Current?.Type}");
-        return tokens[_position++];
-    }
-    private void Expect(TokenType type) => Consume(type);
-    private Token? Current => _position < tokens.Count ? tokens[_position] : null;
 }

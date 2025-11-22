@@ -5,4 +5,7 @@
 		<Nullable>enable</Nullable>
 		<LangVersion>latest</LangVersion>
 	</PropertyGroup>
+	<ItemGroup>
+		<InternalsVisibleTo Include="FlowFusion.Tests" />
+	</ItemGroup>
 </Project>

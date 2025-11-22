@@ -9,12 +9,17 @@ using Microsoft.Extensions.Hosting;
 var host = Host.CreateDefaultBuilder(args)
     .ConfigureServices(services =>
     {
+        // Default evaluator (requires Variables["key"] syntax)
         services.AddSingleton<IExpressionEvaluator, ExpressionEvaluator>();
+
+        // Auto-variables evaluator (allows bare identifiers like "order.Total")
+        services.AddSingleton<ExpressionEvaluator>(sp => new ExpressionEvaluator(autoVariablesMode: true));
 
     })
     .Build();
 
 var evaluator = host.Services.GetRequiredService<FlowFusion.Core.Interfaces.IExpressionEvaluator>();
+var autoEvaluator = host.Services.GetRequiredService<ExpressionEvaluator>();
 
 
 Console.WriteLine("FlowFusion Expression Evaluator Examples");
@@ -83,31 +88,81 @@ await RunExample("Mathematical Calculation",
         ["threshold"] = 35.0
     }));
 
-// Example 8: Workflow routing with multiple conditions
-await RunExample("Workflow Routing",
-    "Variables[\"application\"].Score >= 700 && Variables[\"application\"].Income >= Variables[\"requirements\"].MinIncome && !Variables[\"application\"].HasDefaults",
-    new FlowExecutionContext(new Dictionary<string, object?>
+    // Example 8: Workflow routing with multiple conditions
+    await RunExample("Workflow Routing",
+        "Variables[\"application\"].Score >= 700 && Variables[\"application\"].Income >= Variables[\"requirements\"].MinIncome && !Variables[\"application\"].HasDefaults",
+        new FlowExecutionContext(new Dictionary<string, object?>
+        {
+            ["application"] = new { Score = "750", Income = 80000.0, HasDefaults = false },
+            ["requirements"] = new { MinIncome = 50000.0 }
+        }));
+
+    // Example 9: String literal comparison
+    await RunExample("String Literal Comparison",
+        "Variables[\"user\"].Name == \"John Doe\" && Variables[\"user\"].Age > 18",
+        new FlowExecutionContext(new Dictionary<string, object?>
+        {
+            ["user"] = new { Name = "John Doe", Age = 25 }
+        }));
+
+    // Example 10: Escaped string
+    await RunExample("Escaped String",
+        "Variables[\"message\"].Text == \"Hello \\\"World\\\"\"",
+        new FlowExecutionContext(new Dictionary<string, object?>
+        {
+            ["message"] = new { Text = "Hello \"World\"" }
+        }));
+
+    // Example 11: Error handling - Invalid syntax
+    await RunExample("Invalid Syntax Error",
+        "Variables[\"x\"] @ invalid",
+        new FlowExecutionContext(new Dictionary<string, object?> { ["x"] = 10 }));
+
+    // Example 12: Auto-variables mode - Simplified syntax
+    await RunExampleAuto("Auto-Variables Mode",
+        "order.Total > 100 && customer.Status == \"Gold\"",
+        new FlowExecutionContext(new Dictionary<string, object?>
+        {
+            ["order"] = new { Total = 150.0 },
+            ["customer"] = new { Status = "Gold" }
+        }));
+
+    async Task RunExample(string title, string expression, FlowExecutionContext context)
     {
-        ["application"] = new { Score = "750", Income = 80000.0, HasDefaults = false },
-        ["requirements"] = new { MinIncome = 50000.0 }
-    }));
+        Console.WriteLine($"\n{title}:");
+        Console.WriteLine($"Expression: {expression}");
 
-async Task RunExample(string title, string expression, FlowExecutionContext context)
-{
-    Console.WriteLine($"\n{title}:");
-    Console.WriteLine($"Expression: {expression}");
+        try
+        {
+            // Warmup (compile) the expression
+            await evaluator.WarmupAsync(expression);
 
-    try
-    {
-        // Warmup (compile) the expression
-        await evaluator.WarmupAsync(expression);
-
-        // Evaluate
-        var result = await evaluator.EvaluateAsync(expression, context, CancellationToken.None);
-        Console.WriteLine($"Result: {result}");
+            // Evaluate
+            var result = await evaluator.EvaluateAsync(expression, context, CancellationToken.None);
+            Console.WriteLine($"Result: {result}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+        }
     }
-    catch (Exception ex)
+
+    async Task RunExampleAuto(string title, string expression, FlowExecutionContext context)
     {
-        Console.WriteLine($"Error: {ex.Message}");
+        Console.WriteLine($"\n{title}:");
+        Console.WriteLine($"Expression: {expression}");
+
+        try
+        {
+            // Warmup (compile) the expression
+            await autoEvaluator.WarmupAsync(expression);
+
+            // Evaluate
+            var result = await autoEvaluator.EvaluateAsync(expression, context, CancellationToken.None);
+            Console.WriteLine($"Result: {result}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+        }
     }
-}
