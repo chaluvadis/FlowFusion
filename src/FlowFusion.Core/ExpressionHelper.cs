@@ -27,7 +27,8 @@ public static class ExpressionHelper
     }
 
     public static object? CallMethod(object? obj, string methodName, params object?[] args)
-        => obj?.GetType().GetMethod(methodName, args.Select(a => a?.GetType() ?? typeof(object)).ToArray())?.Invoke(obj, args);
+        => obj?.GetType()
+            .GetMethod(methodName, [.. args.Select(a => a?.GetType() ?? typeof(object))])?.Invoke(obj, args);
 
     public static bool Equal(object? left, object? right)
     {
