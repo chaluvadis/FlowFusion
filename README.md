@@ -2,18 +2,19 @@
 <p style="display:flex;text-align:center;">
 <img src="./resources/logo-transparent.png" width="120" height="80">
 </p>
-A high-performance expression evaluation engine for .NET applications.
+A high-performance, modern expression evaluation engine for .NET applications featuring **Auto-Variables Mode** for natural syntax like `order.Total > 100`, plus full C# expression support with async execution and customizable parsing.
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![.NET](https://img.shields.io/badge/.NET-10.0-purple.svg)](https://dotnet.microsoft.com)
 
 ## Features
 
-- **High-Performance Expression Evaluation**: Uses compiled LINQ expressions for fast execution
-- **C# Syntax Support**: Full C# expression syntax with operators, method calls, and property access
-- **Async Execution**: Fully asynchronous with cancellation support
-- **Context-Aware**: Rich evaluation with access to variables and complex objects
-- **Clean Architecture**: Modular design with clear separation of concerns
+- **🚀 Auto-Variables Mode**: Write natural expressions like `order.Total > 100` instead of `Variables["order"].Total > 100`
+- **High-Performance Expression Evaluation**: Compiled LINQ expressions with `ValueTask` for optimal async performance
+- **Rich C# Syntax Support**: Full operators, method calls, property access, string literals, and escaped strings
+- **Async & Cancellation**: Fully asynchronous with `CancellationToken` support
+- **Context-Aware**: Rich evaluation with access to variables, complex objects, and custom property names
+- **Clean Architecture**: Modular design with dependency injection support
 
 ## Quick Start - Expression Evaluation
 
@@ -36,25 +37,26 @@ var context = new FlowExecutionContext(new Dictionary<string, object?> {
     ["user"] = new { Name = "John Doe", Age = 25 }
 });
 
-// Traditional syntax with Variables access
-string expression = """
-    Variables["order"].Total > 100 && Variables["customer"].Status == "Gold"
-""";
+// 🎯 Auto-Variables Mode (Recommended for user-friendly expressions)
+var evaluator = new ExpressionEvaluator(autoVariablesMode: true);
+
+// Simple, natural syntax - automatically maps to Variables["key"]
+string expression = "order.Total > 100 && customer.Status == \"Gold\"";
 bool result = await evaluator.EvaluateAsync(expression, context);
 Console.WriteLine($"Order approved: {result}"); // Output: Order approved: True
 
-// Simplified syntax with auto-variables mode
-var simpleEvaluator = new ExpressionEvaluator(autoVariablesMode: true);
-string simpleExpression = "order.Total > 100 && customer.Status == \"Gold\"";
-bool simpleResult = await simpleEvaluator.EvaluateAsync(simpleExpression, context);
-Console.WriteLine($"Simple approval: {simpleResult}"); // Output: Simple approval: True
-
-// String literals and complex logic
-string userCheck = """
-    Variables["user"].Name == "John Doe" && Variables["user"].Age >= 18
-""";
+// Complex expressions with string literals
+string userCheck = "user.Name == \"John Doe\" && user.Age >= 18";
 bool isValidUser = await evaluator.EvaluateAsync(userCheck, context);
 Console.WriteLine($"Valid user: {isValidUser}"); // Output: Valid user: True
+
+// Traditional Variables syntax (still supported)
+var traditionalEvaluator = new ExpressionEvaluator(); // autoVariablesMode: false
+string traditionalExpr = """
+    Variables["order"].Total > 100 && Variables["customer"].Status == "Gold"
+""";
+bool traditionalResult = await traditionalEvaluator.EvaluateAsync(traditionalExpr, context);
+Console.WriteLine($"Traditional result: {traditionalResult}"); // Output: Traditional result: True
 ```
 
 ## Architecture
