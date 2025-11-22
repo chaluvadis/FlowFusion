@@ -15,7 +15,7 @@ public class ExpressionTokenizerTests
         var tokens = _tokenizer.Tokenize("x == 10");
 
         // Assert
-        Assert.AreEqual(3, tokens.Count);
+        Assert.HasCount(3, tokens);
         Assert.AreEqual(TokenType.Identifier, tokens[0].Type);
         Assert.AreEqual("x", tokens[0].Value);
         Assert.AreEqual(TokenType.Equal, tokens[1].Type);
@@ -29,7 +29,7 @@ public class ExpressionTokenizerTests
         var tokens = _tokenizer.Tokenize("\"hello\"");
 
         // Assert
-        Assert.AreEqual(1, tokens.Count);
+        Assert.HasCount(1, tokens);
         Assert.AreEqual(TokenType.String, tokens[0].Type);
         Assert.AreEqual("hello", tokens[0].Value);
     }
@@ -41,7 +41,7 @@ public class ExpressionTokenizerTests
         var tokens = _tokenizer.Tokenize("\"hel\\\"lo\"");
 
         // Assert
-        Assert.AreEqual(1, tokens.Count);
+        Assert.HasCount(1, tokens);
         Assert.AreEqual("hel\\\"lo", tokens[0].Value);
     }
 
@@ -115,6 +115,6 @@ public class ExpressionTokenizerTests
         var tokens = _tokenizer.Tokenize("x > 5 && y <= 10");
 
         // Assert
-        Assert.AreEqual(7, tokens.Count);
+        Assert.HasCount(7, tokens);
     }
 }
