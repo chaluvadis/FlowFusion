@@ -272,6 +272,18 @@ public class ExpressionEvaluatorTests
         // Act & Assert
         await Assert.ThrowsAsync<OperationCanceledException>(() => _evaluator.EvaluateAsync("flag", context, cts.Token).AsTask());
     }
+
+    [TestMethod]
+    public async Task EvaluateAsync_WithCancellationDuringCompilation_CanBeCancelled()
+    {
+        // Arrange
+        var cts = new CancellationTokenSource();
+        var context = new FlowExecutionContext(new Dictionary<string, object?> { ["flag"] = true });
+        // Cancel immediately to test during compilation
+        cts.Cancel();
+        // Act & Assert
+        await Assert.ThrowsAsync<OperationCanceledException>(() => _evaluator.EvaluateAsync("flag", context, cts.Token).AsTask());
+    }
     [TestMethod]
     public async Task EvaluateAsync_FloatNumbers_ReturnsTrue()
     {
@@ -318,12 +330,12 @@ public class ExpressionEvaluatorTests
     [TestMethod]
     public async Task EvaluateAsync_CustomPropertyNames_ReturnsTrue()
     {
-        // Arrange
-        var evaluator = new ExpressionEvaluator();
+        // Arrange - Test traditional Variables syntax by explicitly disabling auto-variables
+        var evaluator = new ExpressionEvaluator(autoVariablesMode: false);
         var context = new FlowExecutionContext(new Dictionary<string, object?> { ["x"] = 10.0 });
 
-        // Act
-        var result = await evaluator.EvaluateAsync("x == 10", context, TestContext.CancellationToken);
+        // Act - This should fail with auto-variables disabled since "x" is not a valid identifier
+        var result = await evaluator.EvaluateAsync("Variables[\"x\"] == 10", context, TestContext.CancellationToken);
 
         // Assert
         Assert.IsTrue(result);
