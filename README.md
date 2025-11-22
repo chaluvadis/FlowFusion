@@ -2,14 +2,14 @@
 <p style="display:flex;text-align:center;">
 <img src="./resources/logo-transparent.png" width="120" height="80">
 </p>
-A high-performance, modern expression evaluation engine for .NET applications with **Auto-Variables Mode enabled by default** for natural syntax like `order.Total > 100`, plus full C# expression support with async execution and customizable parsing.
+A high-performance, modern expression evaluation engine for .NET applications with for natural syntax like `order.Total > 100`, plus full C# expression support with async execution and customizable parsing.
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![.NET](https://img.shields.io/badge/.NET-10.0-purple.svg)](https://dotnet.microsoft.com)
 
 ## Features
 
-- **🚀 Auto-Variables Mode**: Write natural expressions like `order.Total > 100` instead of `Variables["order"].Total > 100`
+- **🚀 Auto-Variables Mode**: Write natural expressions like `order.Total > 100`
 - **High-Performance Expression Evaluation**: Compiled LINQ expressions with `ValueTask` for optimal async performance
 - **Rich C# Syntax Support**: Full operators, method calls, property access, string literals, and escaped strings
 - **Async & Cancellation**: Fully asynchronous with `CancellationToken` support
