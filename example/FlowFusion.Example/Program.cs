@@ -83,16 +83,37 @@ await RunExample("Mathematical Calculation",
         ["threshold"] = 35.0
     }));
 
-// Example 8: Workflow routing with multiple conditions
-await RunExample("Workflow Routing",
-    "Variables[\"application\"].Score >= 700 && Variables[\"application\"].Income >= Variables[\"requirements\"].MinIncome && !Variables[\"application\"].HasDefaults",
-    new FlowExecutionContext(new Dictionary<string, object?>
-    {
-        ["application"] = new { Score = "750", Income = 80000.0, HasDefaults = false },
-        ["requirements"] = new { MinIncome = 50000.0 }
-    }));
+    // Example 8: Workflow routing with multiple conditions
+    await RunExample("Workflow Routing",
+        "Variables[\"application\"].Score >= 700 && Variables[\"application\"].Income >= Variables[\"requirements\"].MinIncome && !Variables[\"application\"].HasDefaults",
+        new FlowExecutionContext(new Dictionary<string, object?>
+        {
+            ["application"] = new { Score = "750", Income = 80000.0, HasDefaults = false },
+            ["requirements"] = new { MinIncome = 50000.0 }
+        }));
 
-async Task RunExample(string title, string expression, FlowExecutionContext context)
+    // Example 9: String literal comparison
+    await RunExample("String Literal Comparison",
+        "Variables[\"user\"].Name == \"John Doe\" && Variables[\"user\"].Age > 18",
+        new FlowExecutionContext(new Dictionary<string, object?>
+        {
+            ["user"] = new { Name = "John Doe", Age = 25 }
+        }));
+
+    // Example 10: Escaped string
+    await RunExample("Escaped String",
+        "Variables[\"message\"].Text == \"Hello \\\"World\\\"\"",
+        new FlowExecutionContext(new Dictionary<string, object?>
+        {
+            ["message"] = new { Text = "Hello \"World\"" }
+        }));
+
+    // Example 11: Error handling - Invalid syntax
+    await RunExample("Invalid Syntax Error",
+        "Variables[\"x\"] @ invalid",
+        new FlowExecutionContext(new Dictionary<string, object?> { ["x"] = 10 }));
+
+    async Task RunExample(string title, string expression, FlowExecutionContext context)
 {
     Console.WriteLine($"\n{title}:");
     Console.WriteLine($"Expression: {expression}");
