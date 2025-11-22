@@ -242,7 +242,7 @@ public class ExpressionEvaluatorTests
     public async Task EvaluateAsync_InvalidExpression_ThrowsArgumentException()
     {
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentException>(() => _evaluator.EvaluateAsync("invalid @ syntax", _context, TestContext.CancellationToken));
+        await Assert.ThrowsAsync<ArgumentException>(() => _evaluator.EvaluateAsync("invalid @ syntax", _context, TestContext.CancellationToken).AsTask());
     }
     [TestMethod]
     public async Task WarmupAsync_ValidExpression_DoesNotThrow()
@@ -260,7 +260,7 @@ public class ExpressionEvaluatorTests
     public async Task WarmupAsync_InvalidExpression_ThrowsArgumentException()
     {
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentException>(() => _evaluator.WarmupAsync("invalid @ syntax", TestContext.CancellationToken));
+        await Assert.ThrowsAsync<ArgumentException>(() => _evaluator.WarmupAsync("invalid @ syntax", TestContext.CancellationToken).AsTask());
     }
     [TestMethod]
     public async Task EvaluateAsync_WithCancellation_CanBeCancelled()
@@ -270,7 +270,7 @@ public class ExpressionEvaluatorTests
         var context = new FlowExecutionContext(new Dictionary<string, object?> { ["flag"] = true });
         cts.Cancel();
         // Act & Assert
-        await Assert.ThrowsAsync<OperationCanceledException>(() => _evaluator.EvaluateAsync("flag", context, cts.Token));
+        await Assert.ThrowsAsync<OperationCanceledException>(() => _evaluator.EvaluateAsync("flag", context, cts.Token).AsTask());
     }
     [TestMethod]
     public async Task EvaluateAsync_FloatNumbers_ReturnsTrue()
@@ -311,6 +311,20 @@ public class ExpressionEvaluatorTests
     {
         // Act
         var result = await _evaluator.EvaluateAsync("(x + y) * 2 == 30", _context, TestContext.CancellationToken); // (10 + 5) * 2 = 30
+        // Assert
+        Assert.IsTrue(result);
+    }
+
+    [TestMethod]
+    public async Task EvaluateAsync_CustomPropertyNames_ReturnsTrue()
+    {
+        // Arrange
+        var evaluator = new ExpressionEvaluator();
+        var context = new FlowExecutionContext(new Dictionary<string, object?> { ["x"] = 10.0 });
+
+        // Act
+        var result = await evaluator.EvaluateAsync("x == 10", context, TestContext.CancellationToken);
+
         // Assert
         Assert.IsTrue(result);
     }
