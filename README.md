@@ -173,4 +173,7 @@ Thanks for considering contributing! Please follow these guidelines:
 6. If applicable, update the README and examples.
 
 ## License
-MIT License — see LICENSE file for details.For support or questions, open an issue or reach out via GitHub discussions (if enabled).
+MIT License — see LICENSE file for details.
+
+## Maintainers / Contact
+For support or questions, open an issue or reach out via GitHub discussions (if enabled).
