@@ -1,145 +1,165 @@
+```markdown
 # FlowFusion
+
 <p style="display:flex;text-align:center;">
 <img src="./resources/logo-transparent.png" width="120" height="80">
 </p>
-A high-performance, modern expression evaluation engine for .NET applications with for natural syntax like `order.Total > 100`, plus full C# expression support with async execution and customizable parsing.
+
+A high-performance, modern expression evaluation engine for .NET applications with natural syntax support (e.g. `order.Total > 100`) and full C# expression support. Supports async execution, cancellation, and can be customized to fit workflow scenarios.
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![.NET](https://img.shields.io/badge/.NET-10.0-purple.svg)](https://dotnet.microsoft.com)
 
+Table of Contents
+- Features
+- Quick Start
+  - Install (local)
+  - DI example
+  - Direct instantiation example
+- Expression Syntax (and Workflow Expressions)
+- Building from Source
+- Project Structure
+- API Reference
+- Supported Platforms
+- Contributing
+- Performance & Benchmarks
+- Troubleshooting
+- License
+- Maintainers
+
 ## Features
 
-- **🚀 Auto-Variables Mode**: Write natural expressions like `order.Total > 100`
-- **High-Performance Expression Evaluation**: Compiled LINQ expressions with `ValueTask` for optimal async performance
-- **Rich C# Syntax Support**: Full operators, method calls, property access, string literals, and escaped strings
-- **Async & Cancellation**: Fully asynchronous with `CancellationToken` support
-- **Context-Aware**: Rich evaluation with access to variables, complex objects, and custom property names
-- **Clean Architecture**: Modular design with dependency injection support
+- 🚀 Auto-Variables Mode: write natural expressions like `order.Total > 100`
+- High-performance evaluation: compiled LINQ expressions with `ValueTask` for async performance
+- Rich C# syntax support: operators, method calls, property access, string literals, etc.
+- Async & Cancellation support (`CancellationToken`)
+- Context-aware: access variables, complex objects, and customized property names/identifiers
+- Clean modular architecture with dependency injection
+- Expression-based Workflows: use the same expression language to define conditional branching and guards in workflows
 
-## Quick Start - Expression Evaluation
+## Quick Start
+
+### Install
+
+This project is not published to NuGet yet. Use one of the options below to consume FlowFusion locally:
+
+Option A — add a project reference (recommended for local development)
+1. From your consuming project's folder:
+```bash
+dotnet add <YourProject>.csproj reference ../path/to/FlowFusion/src/FlowFusion.Expression/FlowFusion.Expression.csproj
+# or reference the Core project if you need only core types:
+dotnet add <YourProject>.csproj reference ../path/to/FlowFusion/src/FlowFusion.Core/FlowFusion.Core.csproj
+```
+
+Option B — pack locally and install as a local package
+1. Create a nupkg for the project(s) you want:
+```bash
+cd path/to/FlowFusion
+dotnet pack src/FlowFusion.Expression/ -c Release -o ./nupkgs
+# adjust the project path and configuration as needed
+```
+2. Add the package to your project from the local folder:
+```bash
+dotnet add <YourProject>.csproj package FlowFusion.Expression --version 1.0.0 --source ./nupkgs
+```
+(Replace FlowFusion.Expression and version with the actual package id produced by dotnet pack.)
+
+When FlowFusion is published to NuGet the README will be updated with the official package name and a `dotnet add package` example.
+
+### DI (recommended)
+
+Example using Microsoft.Extensions.DependencyInjection in an async Main:
 
 ```csharp
 using FlowFusion.Core.Interfaces;
 using FlowFusion.Core.Models;
 using Microsoft.Extensions.DependencyInjection;
 
-// Setup DI
 var services = new ServiceCollection();
+// Register the concrete evaluator implementation (adjust if you provide an AddFlowFusion extension)
 services.AddSingleton<IExpressionEvaluator, ExpressionEvaluator>();
+
 var provider = services.BuildServiceProvider();
+var evaluatorFromDI = provider.GetRequiredService<IExpressionEvaluator>();
 
-var evaluator = provider.GetRequiredService<IExpressionEvaluator>();
-
-// Create execution context with variables
 var context = new FlowExecutionContext(new Dictionary<string, object?> {
     ["order"] = new { Total = 150.0, Items = new List<string> { "item1" } },
     ["customer"] = new { CreditLimit = 200.0, Status = "Gold" },
     ["user"] = new { Name = "John Doe", Age = 25 }
 });
 
-// ✨ Auto-Variables Mode (Default - Natural Syntax)
-var evaluator = new ExpressionEvaluator(); // Auto-variables enabled by default
-
-// Simple, natural syntax - automatically maps to Variables["key"]
+// Use expressions for evaluation (these same expressions can also be used as workflow conditions)
 string expression = "order.Total > 100 && customer.Status == \"Gold\"";
-bool result = await evaluator.EvaluateAsync(expression, context);
+bool result = await evaluatorFromDI.EvaluateAsync(expression, context);
 Console.WriteLine($"Order approved: {result}"); // Output: Order approved: True
-
-// Complex expressions with string literals
-string userCheck = "user.Name == \"John Doe\" && user.Age >= 18";
-bool isValidUser = await evaluator.EvaluateAsync(userCheck, context);
-Console.WriteLine($"Valid user: {isValidUser}"); // Output: Valid user: True
-
-// Traditional Variables syntax (still supported)
-var traditionalEvaluator = new ExpressionEvaluator(autoVariablesMode: false);
-string traditionalExpr = """
-    Variables["order"].Total > 100 && Variables["customer"].Status == "Gold"
-""";
-bool traditionalResult = await traditionalEvaluator.EvaluateAsync(traditionalExpr, context);
-Console.WriteLine($"Traditional result: {traditionalResult}"); // Output: Traditional result: True
 ```
 
-## Architecture
+### Direct instantiation
 
-FlowFusion follows clean architecture with modern .NET practices:
-
-- **FlowFusion.Core**: Domain models and interfaces (IExpressionEvaluator, etc.)
-- **FlowFusion.Expression**: High-performance expression evaluation engine
-- **FlowFusion.RunTime**: Workflow execution engine with conditional branching
-- **Example**: Usage demonstrations
-
-## Expression Syntax
-
-Supports comprehensive C# expression syntax:
+If you prefer not to use DI:
 
 ```csharp
-// Variable access patterns
-Variables["order"].Total > 100  // Traditional explicit access
-order.Total > 100               // Auto-variables mode (simplified)
-context.Variables["order"].Total > 100  // Explicit context access
+// Auto-variables enabled by default
+var directEvaluator = new ExpressionEvaluator();
 
-// Operators and comparisons
+var context = new FlowExecutionContext(new Dictionary<string, object?> {
+    ["user"] = new { Name = "John Doe", Age = 25 }
+});
+
+string userCheck = "user.Name == \"John Doe\" && user.Age >= 18";
+bool isValidUser = await directEvaluator.EvaluateAsync(userCheck, context);
+Console.WriteLine($"Valid user: {isValidUser}"); // Output: Valid user: True
+```
+
+Notes:
+- The project supports an "auto-variables" mode (simpler, natural syntax) and a traditional explicit Variables[] access mode. You can choose the mode via constructor or configuration (e.g., `new ExpressionEvaluator(autoVariablesMode: false)`).
+- Expressions used with the evaluator are the same expression language you can use to drive workflow conditions and branching in FlowFusion runtime.
+
+## Expression Syntax (and Workflow Expressions)
+
+FlowFusion supports a comprehensive subset of C# expression syntax and these expressions can be used both for direct evaluation and to define workflow step conditions/branching. Examples:
+
+```csharp
+// Traditional explicit access
+Variables["order"].Total > 100
+
+// Auto-variables mode (simplified)
+order.Total > 100
+
+// Operators & comparisons
 Variables["user"].Age >= 18 && Variables["user"].Balance > 100 || Variables["user"].IsVip
-Variables["a"] == Variables["b"] || Variables["a"] != null
 
-// Arithmetic and mathematical
-(Variables["x"] + Variables["y"]) * 2 > Variables["threshold"]
-Math.Max(Variables["a"], Variables["b"]) / 2
+// Math and method calls
+(Math.Max(Variables["a"], Variables["b"]) / 2) > Variables["threshold"]
 
-// String literals and operations
+// Strings
 Variables["user"].Name == "John Doe"
 Variables["message"].Text == "Hello \"World\""
-Variables["text"].Length > 0
 
-// Method calls and properties
-DateTime.Now.Hour > 9
-Variables["list"].Count() > 0
-Variables["obj"].GetType().Name == "MyClass"
+// Null-coalescing and null-conditional
+Variables["optional"]?.Value ?? 0 > 10
 
-// Complex nested access
-Variables["user"].Profile.Address.City == "New York"
-
-// Array and collection operations
+// Collections
 Variables["list"][0] == "first"
 Variables["array"].Length > 5
+Variables["list"].Count() > 0
 
-// Null checks and coalescing
-Variables["optional"]?.Value ?? 0 > 10
-Variables["data"] != null && Variables["data"].IsActive
+// Custom identifiers
+Data["item"].Status == "Active"  // When using a custom "Data" key
+ctx.Variables["item"].Count > 0  // When using a custom "ctx" identifier
 
-// Type checking and casting
-Variables["obj"].GetType().Name == "MyType"
-(Variables["value"] as int?) ?? 0 > 5
-
-// Custom expressions with different property names
-Data["item"].Status == "Active"  // When using custom "Data" property
-ctx.Variables["item"].Count > 0  // When using custom "ctx" identifier
+// Example: use an expression as a workflow condition
+// If a workflow step accepts a condition string, you can evaluate it with the same evaluator to determine branching.
 ```
 
-## Building from Source
-
-```bash
-# Clone the repository
-git clone https://github.com/your-repo/FlowFusion.git
-cd FlowFusion
-
-# Build all projects
-dotnet build
-
-# Run tests
-dotnet test
-
-# Run the example application
-cd example/FlowFusion.Example
-dotnet run
-```
+Add more examples in the Example project for edge-cases (async method calls, custom functions, and type casting).
 
 ## Project Structure
 
 ```
 src/
 ├── FlowFusion.Core/          # Domain models and interfaces
-├── FlowFusion.Expression/    # Expression evaluation
+├── FlowFusion.Expression/    # Expression evaluation engine
 └── FlowFusion.RunTime/       # Workflow execution engine
 
 test/
@@ -148,37 +168,44 @@ test/
 │   └── Workflow/             # Workflow engine tests
 
 example/
-└── FlowFusion.Example/       # Comprehensive usage examples
+└── FlowFusion.Example/       # Usage examples
 ```
 
 ## API Reference
 
-### IExpressionEvaluator
+Relevant public types and signatures (surface-level).
+
+IExpressionEvaluator
 ```csharp
 ValueTask<bool> EvaluateAsync(string expression, FlowExecutionContext context, CancellationToken cancellation = default);
 ValueTask<Func<FlowExecutionContext, bool>> WarmupAsync(string expression, CancellationToken cancellation = default);
 ```
 
-### FlowExecutionContext
+FlowExecutionContext
 ```csharp
 public FlowExecutionContext(IDictionary<string, object?> variables);
 public IDictionary<string, object?> Variables { get; }
 ```
 
+(If any signatures differ in code, keep this readme in sync — consider generating part of the API docs or adding XML doc links.)
+
 ## Contributing
 
-1. Follow clean architecture and modern .NET practices
-2. Add comprehensive tests for new features
-3. Update documentation and examples
-4. Ensure all tests pass and performance is maintained
-5. Use `ValueTask` for async methods where appropriate
+Thanks for considering contributing! Please follow these guidelines:
 
-## Performance Benchmarks
-
-- **Tokenization**: ~3x faster with span-based parsing
-- **Evaluation**: Compiled expressions provide near-native performance
-- **Memory**: Reduced allocations through span usage and `ValueTask`
+1. Fork the repository and create a topic branch.
+2. Follow the existing architecture and coding conventions.
+3. Add tests for new features or bug fixes.
+4. Ensure all tests pass locally: dotnet test
+5. Open a PR against main (or the documented mainline branch) with a descriptive title and summary.
+6. If applicable, update the README and examples.
 
 ## License
 
-MIT License - see LICENSE file for details.
+MIT License — see LICENSE file for details.
+
+## Maintainers / Contact
+
+- Repository owner: chaluvadis
+- For support or questions, open an issue or reach out via GitHub discussions (if enabled).
+```
