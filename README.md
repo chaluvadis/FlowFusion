@@ -38,33 +38,6 @@ Table of Contents
 
 ## Quick Start
 
-### Install
-
-This project is not published to NuGet yet. Use one of the options below to consume FlowFusion locally:
-
-Option A — add a project reference (recommended for local development)
-1. From your consuming project's folder:
-```bash
-dotnet add <YourProject>.csproj reference ../path/to/FlowFusion/src/FlowFusion.Expression/FlowFusion.Expression.csproj
-# or reference the Core project if you need only core types:
-dotnet add <YourProject>.csproj reference ../path/to/FlowFusion/src/FlowFusion.Core/FlowFusion.Core.csproj
-```
-
-Option B — pack locally and install as a local package
-1. Create a nupkg for the project(s) you want:
-```bash
-cd path/to/FlowFusion
-dotnet pack src/FlowFusion.Expression/ -c Release -o ./nupkgs
-# adjust the project path and configuration as needed
-```
-2. Add the package to your project from the local folder:
-```bash
-dotnet add <YourProject>.csproj package FlowFusion.Expression --version 1.0.0 --source ./nupkgs
-```
-(Replace FlowFusion.Expression and version with the actual package id produced by dotnet pack.)
-
-When FlowFusion is published to NuGet the README will be updated with the official package name and a `dotnet add package` example.
-
 ### DI (recommended)
 
 Example using Microsoft.Extensions.DependencyInjection in an async Main:
