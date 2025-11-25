@@ -6,6 +6,8 @@ namespace FlowFusion.Core;
 /// </summary>
 internal static class SimpleInterpreter
 {
+    private const int MaxExpressionLength = 10000;
+    
     /// <summary>
     /// Compiles an expression string into a compiled expression.
     /// </summary>
@@ -16,6 +18,9 @@ internal static class SimpleInterpreter
     {
         ArgumentNullException.ThrowIfNull(expression);
         ArgumentNullException.ThrowIfNull(registry);
+        
+        if (expression.Length > MaxExpressionLength)
+            throw new ArgumentException($"Expression is too long. Maximum allowed length is {MaxExpressionLength} characters.", nameof(expression));
         
         var parser = new Parser(expression);
         var root = parser.Parse();
@@ -340,7 +345,7 @@ internal static class SimpleInterpreter
 /// <summary>
 /// Exception thrown when parsing an expression fails.
 /// </summary>
-internal sealed class ParseException : Exception
+public sealed class ParseException : Exception
 {
     public ParseException(string message) : base(message) { }
 }
@@ -348,7 +353,7 @@ internal sealed class ParseException : Exception
 /// <summary>
 /// Exception thrown when evaluating an expression fails.
 /// </summary>
-internal sealed class EvaluationException : Exception
+public sealed class EvaluationException : Exception
 {
     public EvaluationException(string message) : base(message) { }
 }
