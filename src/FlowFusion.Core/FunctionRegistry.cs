@@ -29,6 +29,7 @@ internal sealed class FunctionRegistry
     /// <returns>True if the function was found; false otherwise.</returns>
     public bool TryGet(string name, out Func<ExecutionContext, object?[], CancellationToken, Task<object?>>? function)
     {
+        ArgumentNullException.ThrowIfNull(name);
         return _functions.TryGetValue(name, out function);
     }
 
