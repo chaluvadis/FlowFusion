@@ -198,7 +198,7 @@ public class FlowEnvironmentTests
     {
         // Arrange
         var env = new FlowEnvironment();
-        var cts = new CancellationTokenSource();
+        using var cts = new CancellationTokenSource();
         CancellationToken observedToken = default;
         
         env.RegisterFunction("checkCancel", (ctx, args, ct) =>
@@ -221,7 +221,7 @@ public class FlowEnvironmentTests
     {
         // Arrange
         var env = new FlowEnvironment();
-        var cts = new CancellationTokenSource();
+        using var cts = new CancellationTokenSource();
         CancellationToken observedToken = default;
         
         env.RegisterFunction("asyncFunc", (ctx, args, ct) =>

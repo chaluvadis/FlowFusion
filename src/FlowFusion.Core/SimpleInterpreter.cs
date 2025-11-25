@@ -159,6 +159,11 @@ internal static class SimpleInterpreter
             throw new ParseException($"Unexpected character '{c}' at position {_pos}.");
         }
 
+        /// <summary>
+        /// Parses a string literal. Escape sequences are recognized here by skipping 2 characters
+        /// for any backslash followed by another character. The actual interpretation of escape
+        /// sequences is handled by <see cref="UnescapeString"/>, which must stay in sync with this method.
+        /// </summary>
         private Expr ParseStringLiteral()
         {
             char quote = _input[_pos];
@@ -169,7 +174,7 @@ internal static class SimpleInterpreter
             {
                 if (_input[_pos] == '\\' && _pos + 1 < _input.Length)
                 {
-                    _pos += 2; // skip escape sequence
+                    _pos += 2; // skip escape sequence (see UnescapeString for interpretation)
                 }
                 else
                 {
@@ -245,7 +250,7 @@ internal static class SimpleInterpreter
             string numStr = _input[start.._pos];
             if (isDouble)
             {
-                if (!double.TryParse(numStr, NumberStyles.Float, CultureInfo.InvariantCulture, out double d))
+                if (!double.TryParse(numStr, NumberStyles.Float | NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out double d))
                 {
                     throw new ParseException($"Invalid number: {numStr}");
                 }

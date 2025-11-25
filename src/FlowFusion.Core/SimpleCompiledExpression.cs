@@ -30,13 +30,14 @@ internal sealed class SimpleCompiledExpression : ISimpleCompiledExpression
 
     private static bool ConvertToBoolean(object? value)
     {
+        const double epsilon = 1e-10;
         return value switch
         {
             null => false,
             bool b => b,
             int i => i != 0,
             long l => l != 0,
-            double d => d != 0,
+            double d => Math.Abs(d) > epsilon,
             string s => !string.IsNullOrEmpty(s),
             _ => true
         };
