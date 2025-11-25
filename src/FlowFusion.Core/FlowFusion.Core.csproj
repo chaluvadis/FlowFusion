@@ -7,5 +7,6 @@
 	</PropertyGroup>
 	<ItemGroup>
 		<InternalsVisibleTo Include="FlowFusion.Tests" />
+		<InternalsVisibleTo Include="FlowFusion.Core.Tests" />
 	</ItemGroup>
 </Project>
