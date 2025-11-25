@@ -258,7 +258,7 @@ internal static class SimpleInterpreter
             }
             else
             {
-                if (!long.TryParse(numStr, NumberStyles.Integer, CultureInfo.InvariantCulture, out long l))
+                if (!long.TryParse(numStr, NumberStyles.Integer | NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out long l))
                 {
                     throw new ParseException($"Invalid number: {numStr}");
                 }
