@@ -20,10 +20,14 @@ public sealed class FlowEnvironment : IFlowEnvironment
     }
 
     /// <inheritdoc />
+    /// <remarks>
+    /// This method uses GetAwaiter().GetResult() to provide a synchronous API as required by the interface contract.
+    /// For async usage, prefer using Compile() followed by EvaluateBooleanAsync() to avoid blocking.
+    /// Note: Registered functions should avoid blocking calls to prevent deadlocks in this synchronous context.
+    /// </remarks>
     public bool EvaluateBoolean(string expression, IReadOnlyDictionary<string, object?> variables, CancellationToken cancellationToken = default)
     {
         var compiled = Compile(expression);
-        // Synchronous wrapper around async method
         return compiled.EvaluateBooleanAsync(variables, cancellationToken).GetAwaiter().GetResult();
     }
 }
