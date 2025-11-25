@@ -11,6 +11,7 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="test/FlowFusion.Tests/FlowFusion.Tests.csproj" />
+    <Project Path="test/FlowFusion.Core.Tests/FlowFusion.Core.Tests.csproj" />
   </Folder>
   <Folder Name="/example/">
     <Project Path="example/FlowFusion.Example/FlowFusion.Example.csproj" />
